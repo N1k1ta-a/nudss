@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>💌</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+    font-family: 'Segoe UI', sans-serif;
+    overflow-x: hidden;
+    padding: 20px;
+  }
+
+  .screen {
+    position: relative;
+    z-index: 2;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 24px;
+    padding: 35px 30px;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+    color: #fff;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    animation: float 5s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  h1 { font-size: 23px; margin-bottom: 10px; }
+  .subtitle { font-size: 15px; opacity: 0.8; margin-bottom: 22px; line-height: 1.5; }
+
+  /* ---- 7 ЦИФР ---- */
+  .options {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 11px;
+  }
+  .options button {
+    padding: 0;
+    aspect-ratio: 1 / 1;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 14px;
+    background: rgba(255,255,255,0.06);
+    color: #fff;
+    font-size: 24px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  /* 7-я кнопка (последняя в ряду из 3) — по центру снизу */
+  .options button:last-child:nth-child(4n + 3) {
+    grid-column: 2 / 3;
+  }
+  .options button:hover {
+    background: linear-gradient(135deg, #ff6b9d, #c44569);
+    border-color: transparent;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 10px 25px rgba(255,107,157,0.4);
+  }
+
+  /* ---- ЭКРАН С ФОТО ---- */
+  .photoScreen { display: none; }
+  .photoScreen.show { display: block; }
+
+  .photo-frame {
+    width: 100%;
+    border-radius: 18px;
+    overflow: hidden;
+    margin-bottom: 18px;
+    border: 2px solid rgba(255,255,255,0.2);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.3);
+    aspect-ratio: 3 / 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .photo-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .btn-row button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 50px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .btn-back {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.25) !important;
+  }
+  .btn-next {
+    background: linear-gradient(135deg, #ff6b9d, #c44569);
+    color: #fff;
+  }
+  .btn-row button:hover {
+    transform: scale(1.06);
+    box-shadow: 0 8px 22px rgba(255,107,157,0.4);
+  }
+
+  /* ---- ФИНАЛЬНЫЙ ЭКРАН ---- */
+  .finalScreen { display: none; }
+  .finalScreen.show { display: block; }
+  .finalScreen h1 { font-size: 26px; margin-bottom: 16px; }
+  .finalScreen p { font-size: 16px; line-height: 1.6; margin-bottom: 12px; opacity: 0.92; }
+
+  /* ---- КРАСНЫЕ СЕРДЕЧКИ ---- */
+  .heart {
+    position: fixed;
+    bottom: -40px;
+    font-size: 22px;
+    color: #ff2d55;
+    animation: rise 6s linear forwards;
+    opacity: 0;
+    z-index: 1;
+    pointer-events: none;
+    text-shadow: 0 0 10px rgba(255,45,85,0.7);
+  }
+  @keyframes rise {
+    0% { transform: translateY(0) scale(0.5); opacity: 0; }
+    30% { opacity: 1; }
+    100% { transform: translateY(-110vh) scale(1.3); opacity: 0; }
+  }
+
+  @media (max-width: 380px) {
+    .options { grid-template-columns: repeat(3, 1fr); }
+    .options button:last-child:nth-child(4n + 3) { grid-column: auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== ЭКРАН 1: ИНТРИГА + 7 ЦИФР ===== -->
+<div class="screen" id="questionScreen">
+  <h1>Привет 💫</h1>
+  <p class="subtitle">За каждой цифрой спрятано фото.<br>Что именно — сюрприз 😏<br>Выбирай 👇</p>
+  <div class="options" id="optionsGrid"></div>
+</div>
+
+<!-- ===== ЭКРАН 2: ФОТО + КНОПКИ ===== -->
+<div class="screen photoScreen" id="photoScreen">
+  <div class="photo-frame">
+    <img id="photoImg" src="" alt="Фото">
+  </div>
+  <div class="btn-row">
+    <button class="btn-back" onclick="backToOptions()">← Другое</button>
+    <button class="btn-next" onclick="goFinal()">Это то, что нужно ❤️</button>
+  </div>
+</div>
+
+<!-- ===== ЭКРАН 3: ФИНАЛ ===== -->
+<div class="screen finalScreen" id="finalScreen">
+  <h1>Спасибо 🤍</h1>
+  <p>Значит, я жду от тебя <b>именно такие фото</b>.</p>
+  <p>Знаю что я наглый и пошленький, но я хотел необычно это сделать и попросить.</p>
+</div>
+
+<script>
+  /* ============================================================
+     ⚙️  НАСТРОЙКА — МЕНЯЙ ТОЛЬКО ЗДЕСЬ
+     Фото лежат рядом с index.html: 1.jpg ... 7.jpg
+     ============================================================ */
+  const PHOTOS = ["1.jpg", "2.jpg", "3.jpg", "4.jpg", "5.jpg", "6.jpg", "7.jpg"];
+  /* ============================================================ */
+
+  const questionScreen = document.getElementById('questionScreen');
+  const photoScreen = document.getElementById('photoScreen');
+  const finalScreen = document.getElementById('finalScreen');
+  const optionsGrid = document.getElementById('optionsGrid');
+
+  // Кнопки с цифрами
+  PHOTOS.forEach((photo, index) => {
+    const btn = document.createElement('button');
+    btn.textContent = index + 1;
+    btn.onclick = () => showPhoto(index);
+    optionsGrid.appendChild(btn);
+  });
+
+  // Показать фото
+  function showPhoto(index) {
+    const photo = PHOTOS[index];
+    const frame = document.querySelector('.photo-frame');
+
+    frame.innerHTML = '<img src="' + photo + '" alt="Фото">';
+    const img = frame.querySelector('img');
+    img.onerror = () => {
+      frame.innerHTML =
+        '<div style="padding:30px;text-align:center;opacity:0.7;">' +
+        '📷<br><br>Фото не найдено.<br>Проверь файл: <b>' + photo + '</b>' +
+        '</div>';
+    };
+
+    questionScreen.style.display = 'none';
+    finalScreen.classList.remove('show');
+    photoScreen.classList.add('show');
+    burstHearts(6);
+  }
+
+  // Назад к цифрам
+  function backToOptions() {
+    photoScreen.classList.remove('show');
+    questionScreen.style.display = 'block';
+  }
+
+  // Финал
+  function goFinal() {
+    photoScreen.classList.remove('show');
+    finalScreen.classList.add('show');
+    burstHearts(14);
+  }
+
+  // Красные сердечки
+  function burstHearts(count) {
+    for (let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const heart = document.createElement('div');
+        heart.className = 'heart';
+        heart.textContent = '❤';
+        heart.style.left = Math.random() * 100 + 'vw';
+        heart.style.animationDuration = (4 + Math.random() * 3) + 's';
+        heart.style.fontSize = (16 + Math.random() * 14) + 'px';
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 7000);
+      }, i * 130);
+    }
+  }
+  setInterval(() => burstHearts(1), 1500);
+</script>
+
+</body>
+</html>
